@@ -1,4 +1,5 @@
 ## Project Overview
+[![Build Status](http://ec2-13-127-69-172.ap-south-1.compute.amazonaws.com:8080/buildStatus/icon?job=devops-capstone%2Fmaster&build=8)](http://ec2-13-127-69-172.ap-south-1.compute.amazonaws.com:8080/job/devops-capstone/job/master/8/)
 
 This repository contains a capstone project which deals with cloud-native container orchestration. This project is a requirement to graduate for the DevOps Nanodegree at Udacity. The project requires the skills and knowledge which were developed throughout the Cloud DevOps Nanodegree program to set up a pipeline for deploying Kubernetes Cluster running a containerized nodeJS app using Jenkins.
 
