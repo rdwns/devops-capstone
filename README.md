@@ -31,7 +31,7 @@ Main tools used were:
 - [x]  DryTest the Kubernetes Cluster
 - [x]  Deploy to AWS
 
-The screenshots for successful deployment can be found in /screenshots. The app is hosted at [here](https:a89c511869f05427bbe7c2209183e7ed-1615725941.ap-south-1.elb.amazonaws.com)
+The screenshots for successful deployment can be found in /screenshots. The app is hosted [here](https://a89c511869f05427bbe7c2209183e7ed-1615725941.ap-south-1.elb.amazonaws.com)
 
 
 ---
