@@ -1,0 +1,149 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: Servers for running and hosting Udagram
+
+Parameters:
+
+  EnvironmentName:
+    Description: An environment name that will be prefixed to resource names
+    Type: String
+    Default: udastone
+
+  NetworkStackName:
+    Description: Name of the base network stack
+    Type: String
+    Default: udastone-network
+
+  ServerType:
+    Type: String
+    Default: t2.micro
+
+  JenkinsAMI:
+    Type: String
+    Default: ami-0b44050b2d893d5f7
+    Description: AMI ID for deploying Bastion Host
+
+  KeyName:
+    Type: String
+    Default: udacity-key
+
+
+Resources:
+
+  JenkinsSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub Security Group for ${AWS::StackName} Jenkins Host
+      VpcId:
+          Fn::ImportValue:
+            !Sub '${EnvironmentName}-VPCID'
+
+  JenkinsAllowInboundSSHFromInternet:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref JenkinsSG
+      IpProtocol: tcp
+      FromPort: 22
+      ToPort: 22
+      CidrIp: 0.0.0.0/0
+
+  JenkinsAllowInboundHTTPFromInternet:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref JenkinsSG
+      IpProtocol: tcp
+      FromPort: 80
+      ToPort: 80
+      CidrIp: 0.0.0.0/0
+
+  JenkinsAllowInbound8080FromInternet:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref JenkinsSG
+      IpProtocol: tcp
+      FromPort: 8080
+      ToPort: 8080
+      CidrIp: 0.0.0.0/0
+
+  RootRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+              - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: root
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: '*'
+                Resource: '*'
+
+  RootInstanceProfile:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      Path: /
+      Roles:
+        - !Ref RootRole
+
+
+  JenkinsEC2:
+    Type: AWS::EC2::Instance
+    Properties:
+      SubnetId:
+        Fn::ImportValue: !Sub "${EnvironmentName}-PUB-SN"
+      ImageId: !Ref JenkinsAMI
+      InstanceType: !Ref ServerType
+      IamInstanceProfile: !Ref RootInstanceProfile
+      KeyName: !Ref KeyName
+      BlockDeviceMappings:
+        - DeviceName: "/dev/sdk"
+          Ebs:
+            VolumeSize: 8
+            VolumeType: gp2
+            DeleteOnTermination: true
+      SecurityGroupIds:
+        - !GetAtt JenkinsSG.GroupId
+      UserData:
+        Fn::Base64: !Sub |
+            #!/bin/bash
+            sudo apt-get update -y
+            sudo apt update -y
+            sudo apt-get install openjdk-8-jdk wget unzip -y
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
+            sudo apt-get install -y apt-transport-https gnupg2
+            curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+            echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
+            sudo apt-get update
+            sudo apt-get install -y kubectl
+            wget https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64
+            mv hadolint-Linux-x86_64 hadolint
+            sudo mv hadolint /usr/bin
+            curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+            sudo mv /tmp/eksctl /usr/bin
+            eksctl version
+            curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
+            sudo apt-get install -y nodejs
+            cd /home/ubuntu
+            wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | sudo apt-key add -
+            sudo sh -c 'echo deb https://pkg.jenkins.io/debian-stable binary/ > \
+                /etc/apt/sources.list.d/jenkins.list'
+            sudo apt-get update
+            sudo apt-get install jenkins -y
+            sudo systemctl start jenkins
+            sudo systemctl status jenkins
+
+Outputs: 
+  Jenkins:
+    Description: The Public DNS for the Jenkins Instance
+    Value: !Join ['', ['http://', !GetAtt 'JenkinsEC2.PublicDnsName', ':8080']]
