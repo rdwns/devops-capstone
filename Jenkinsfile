@@ -1,50 +1,33 @@
-
-
-
 node {
 
      def blue_app
      def green_app
 
 
-        stage('Clone repository') {
+    stage('Clone repository') {
         /* Cloning the Repository to our Workspace */
+        checkout scm
+    }
 
-                checkout scm
-
-}
-
-		 stage("Lint Dockerfile") {
-
-                   sh "hadolint blue/Dockerfile && hadolint green/Dockerfile"
+    stage("Lint Dockerfile") {
+        sh "hadolint blue/Dockerfile && hadolint green/Dockerfile"
+    }
 
 
-
- }
-
-
- stage('Build Blue image') {
-  /* This builds the blue container image */
-
-
-
+    stage('Build Blue image') {
+    /* This builds the blue container image */
         blue_app = docker.build("rdwns/node-docker-blue", "./blue")
+    }
 
-
-
- }
-
- stage('Build Green image') {
-  /* This builds the green container image */
-
+    stage('Build Green image') {
+    /* This builds the green container image */
         green_app = docker.build("rdwns/node-docker-green", "./green")
+    }
 
- }
-
- stage('Push images to dockerhub') {
-  /*
-  You would need to first register with DockerHub before you can push images to your account
-		*/
+    stage('Push images to dockerhub') {
+    /*
+    You would need to first register with DockerHub before you can push images to your account
+            */
 
         docker.withRegistry('https://registry.hub.docker.com', 'docker-hub') {
         blue_app.push("${env.BUILD_NUMBER}")
@@ -55,9 +38,10 @@ node {
         }
         echo "Trying to Push Docker Images to DockerHub"
 
- }
+    }
 
- stage('Create kubernetes cluster') {
+
+    stage('Create kubernetes cluster') {
 
         withAWS(region: 'ap-south-1', credentials: 'rdwn-cicd') {
                 sh '''
@@ -73,46 +57,42 @@ node {
                 --managed
                 '''
         }
+    }
 
- }
+    stage('Deploy blue container') {
 
+        withAWS(region: 'ap-south-1', credentials: 'rdwn-cicd') {
+            sh "kubectl apply -f ./blue/blue-controller.yml"
+         }
+    }
 
- stage('Deploy blue container') {
+    stage('Deploy green container') {
 
-            withAWS(region: 'ap-south-1', credentials: 'rdwn-cicd') {
-                sh "kubectl apply -f ./blue/blue-controller.yml"
+        withAWS(region: 'ap-south-1', credentials: 'rdwn-cicd') {
+            sh "kubectl apply -f green/green-controller.yml"
         }
 
- }
+    }
 
- stage('Deploy green container') {
+    stage('Create service for cluster and redirect to blue!') {
 
-            withAWS(region: 'ap-south-1', credentials: 'rdwn-cicd') {
-                sh "kubectl apply -f green/green-controller.yml"
+         withAWS(region: 'ap-south-1', credentials: 'rdwn-cicd') {
+        sh "kubectl apply -f ./blue-service.yml"
             }
 
- }
+    }
 
- stage('Create service for cluster and redirect to blue!') {
+    stage('Approve deployment to green') {
+        input "Should the traffic be redirected to green?"
 
-            withAWS(region: 'ap-south-1', credentials: 'rdwn-cicd') {
-                sh "kubectl apply -f ./blue-service.yml"
-            }
+    }
 
- }
+    stage('Create service for cluster and redirect to green!') {
 
- stage('Approve deployment to green') {
-
-             input "Should the traffic be redirected to green?"
-
- }
-
- stage('Create service for cluster and redirect to green!') {
-
-            withAWS(region: 'ap-south-1', credentials: 'rdwn-cicd') {
-                sh "kubectl apply -f ./green-service.yml"
+        withAWS(region: 'ap-south-1', credentials: 'rdwn-cicd') {
+        sh "kubectl apply -f ./green-service.yml"
         }
-        }
+    }
 
 
 
