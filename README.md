@@ -35,7 +35,7 @@ Main tools used were:
 
 <details>
 
-<summary>### Docker</summary>
+<summary><b>Docker</b></summary>
 
 Docker is the most widely used container technology and really what most people mean when they refer to containers. Docker is built on [cgroups](https://en.wikipedia.org/wiki/Cgroups) and [namespacing](https://en.wikipedia.org/wiki/Linux_namespaces) provided by the Linux kernel and recently Windows as well.
 
@@ -47,9 +47,8 @@ On top of the base image are multiple images that each build a portion of the co
 
 </details>
 
-
 <details>
-<summary>### Kubernetes<summary>
+<summary><b>Kubernetes</b></summary>
 
 Making use of Kubernetes requires understanding the different abstractions it uses to represent the state of the system, such as services, pods, volumes, namespaces, and deployments.
 
@@ -59,7 +58,6 @@ Making use of Kubernetes requires understanding the different abstractions it us
 - **[Volume](https://kubernetes.io/docs/concepts/storage/volumes/)** - ****similar to a container volume in Docker, but a Kubernetes volume applies to a whole pod and is mounted on all containers in the pod. Kubernetes guarantees data is preserved across container restarts. The volume will be removed only when the pod gets destroyed. Also, a pod can have multiple volumes (possibly of different types) associated.
 - **[Namespace](https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/)** - ****a virtual cluster (a single physical cluster can run multiple virtual ones) intended for environments with many users spread across multiple teams or projects, for isolation of concerns. Resources inside a namespace must be unique and cannot access resources in a different namespace. Also, a namespace can be allocated a [resource quota](https://kubernetes.io/docs/concepts/policy/resource-quotas/) to avoid consuming more than its share of the physical cluster’s overall resources.
 - **[Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/)** - ****describes the desired state of a pod or a replica set, in a yaml file. The deployment controller then gradually updates the environment (for example, creating or deleting replicas) until the current state matches the desired state specified in the deployment file. For example, if the yaml file defines 2 replicas for a pod but only one is currently running, an extra one will get created. Note that replicas managed via a deployment should not be manipulated directly, only via new deployments.
-
 
 </details>
 
