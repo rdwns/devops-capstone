@@ -2,6 +2,8 @@
 
 This repository contains a capstone project which deals with cloud-native container orchestration. This project is a requirement to graduate for the DevOps Nanodegree at Udacity. The project requires the skills and knowledge which were developed throughout the Cloud DevOps Nanodegree program to set up a pipeline for deploying Kubernetes Cluster running a containerized nodeJS app using Jenkins.
 
+![Sreenshot of Jenkins Pipeline](/screenshots/jenkins-steps.png?raw=true "Jenkins Pipeline")
+
 The main tasks involved in the project included:
 
 - Working with AWS CLI
@@ -28,6 +30,9 @@ Main tools used were:
 - [x]  Create Jenkinsfile
 - [x]  DryTest the Kubernetes Cluster
 - [x]  Deploy to AWS
+
+The screenshots for successful deployment can be found in /screenshots. The app is hosted at [here](https:a89c511869f05427bbe7c2209183e7ed-1615725941.ap-south-1.elb.amazonaws.com)
+
 
 ---
 
@@ -64,7 +69,7 @@ Making use of Kubernetes requires understanding the different abstractions it us
 ---
 ### To prepare your local system to use Kubernetes you need to:
 
-You can run `make install`  in the root directory of the project to run through all these installations automatically. Maue sure `make` is installed in your system first
+You can run `make install`  in the root directory of the project to run through all these installations automatically. Make sure `make` is installed in your system first
 
 1. Install and configure`aws cli` on your local system. *[Official Docs](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html)*
 
